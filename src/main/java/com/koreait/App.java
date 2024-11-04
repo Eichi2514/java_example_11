@@ -1,69 +1,70 @@
 package com.koreait;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Scanner;
 
 public class App {
-    public static void run() {
-        Scanner sc = new Scanner(System.in);
-        Map<Long, String> myList = new HashMap<>();
-        ArrayList<Todo> todos = new ArrayList<>();
-        long id = 0;
+    public void run() {
+        System.out.println("Todo App 시작");
 
-        label:
-        while (true) {
-            System.out.print("명령) ");
-            String cmd = sc.next().trim();
+        try (Scanner sc = new Scanner(System.in)) {
+            List<Todo> todos = new ArrayList<>();
+            long todosLastId = 0;
 
-            switch (cmd) {
-                case "exit":
-                    System.out.println("앱 종료 명령이 입력되었습니다.");
-                    System.out.println("프로그램이 곧 종료합니다.");
-                    break label;
-                case "list":
-                    System.out.println("번호 / 내용");
-                    for (long i = 1; i <= id; i++) {
-                        if (myList.get(i) != null) {
-                            System.out.println((i) + " / " + myList.get(i));
-                        }
+            while (true) {
+                System.out.print("명령) ");
+                String cmd = sc.nextLine().trim();
+
+                if (cmd.equals("exit")) break;
+                else if (cmd.equals("add")) {
+                    long id = todosLastId + 1;
+                    System.out.print("할 일 : ");
+                    String content = sc.nextLine().trim();
+
+                    Todo todo = new Todo(id, content);
+                    todos.add(todo);
+                    todosLastId++;
+
+                    System.out.printf("%d번 todo가 생성되었습니다\n", id);
+                } else if (cmd.equals("list")) {
+                    System.out.println("번호   /   내용  ");
+
+                    todos.forEach(todo -> System.out.printf("%d  /  %s  \n", todo.getId(), todo.getContent()));
+                } else if (cmd.equals("del")) {
+                    System.out.printf("삭제할 할일의 번호 : ");
+                    long id = Long.parseLong(sc.nextLine().trim());
+
+                    boolean isRemoved = todos.removeIf(todo -> todo.getId() == id);
+
+                    if (!isRemoved) {
+                        System.out.printf("%d번 할일은 존재하지 않습니다.\n", id);
+                        continue;
                     }
-                    break;
-                case "add":
-                    System.out.print("할일 : ");
-                    String content = sc.next().trim();
-                    ;
-                    id++;
-                    myList.put(id, content);
-                    System.out.println(id + "번 할일이 생성되었습니다");
-                    break;
-                case "del": {
-                    System.out.print("삭제할 할일의 번호 : ");
-                    long num = sc.nextLong();
-                    if (myList.get(num) == null) {
-                        System.out.println(num + "번 할일은 존재하지 않습니다.");
-                    } else {
-                        myList.remove(num);
-                        System.out.println(num + "번 할일이 삭제되었습니다.");
+                    System.out.printf("%d번 할일이 삭제되었습니다.\n", id);
+                } else if (cmd.equals("modify")) {
+                    System.out.printf("수정할 할일의 번호 : ");
+                    long id = Long.parseLong(sc.nextLine().trim());
+
+                    Todo foundTodo = todos.stream()
+                            .filter(t -> t.getId() == id)
+                            .findFirst()
+                            .orElse(null);
+
+                    if (foundTodo == null) {
+                        System.out.printf("%d번 할일은 존재하지 않습니다.\n", id);
+                        continue;
                     }
-                    break;
-                }
-                case "modify": {
-                    System.out.print("수정할 할일의 번호 : ");
-                    long num = sc.nextLong();
-                    if (myList.get(num) == null) {
-                        System.out.println(num + "번 할일은 존재하지 않습니다.");
-                    } else {
-                        System.out.println("기존 할일 : " + myList.get(num));
-                        System.out.print("새 할일 : ");
-                        String newContent = sc.next().trim();
-                        myList.put(num, newContent);
-                        System.out.println(num + "번 할일이 수정되었습니다.");
-                    }
-                    break;
+
+                    System.out.printf("기존 할일 : %s\n", foundTodo.getContent());
+                    System.out.print("새 할일 : ");
+                    foundTodo.setContent(sc.nextLine().trim());
+
+                    System.out.printf("%d번 할일이 수정되었습니다.\n", id);
                 }
             }
         }
+
+        System.out.println("Todo App 끝");
     }
 }
